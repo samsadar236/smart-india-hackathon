@@ -61,29 +61,18 @@ Our solution is a hybrid AI-ML platform that integrates drone imagery, IoT senso
 
 
 
+
+
 ### Tech Stack
 
 | Component | Technology |
-| --- | --- |
-| **UAV Segmentation** | DeepLabV3+ (CNN encoder-decoder)
-
- |
-| **Image-to-DEM** | cGAN (pix2pix) — U-Net Generator + PatchGAN Discriminator
-
- |
-| **Risk Model** | Random Forest, XGBoost, MLP (Keras API)
-
- |
-| **IoT Data Ingestion** | MQTT / REST
-
- |
-| **Geospatial Visualization** | GIS overlays with color-coded zone maps
-
- |
-| **Deployment** | Lightweight, containerized backend (Cloud/Edge flexible)
-
- |
-
+|---|---|
+| **UAV Segmentation** | DeepLabV3+ (CNN encoder-decoder) |
+| **Image-to-DEM** | cGAN (pix2pix) — U-Net Generator + PatchGAN Discriminator |
+| **Risk Model** | Random Forest, XGBoost, MLP (Keras API) |
+| **IoT Data Ingestion** | MQTT / REST |
+| **Geospatial Visualization** | GIS overlays with color-coded zone maps |
+| **Deployment** | Lightweight, containerized backend (Cloud/Edge flexible) |
 ---
 
 ## Model Workflow
