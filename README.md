@@ -182,13 +182,3 @@ this repo
 
 ---
 
-## Hackathon Details
-
-| Field | Details |
-|---|---|
-| Event | Smart India Hackathon 2025 |
-| Problem ID | 25071 |
-| Theme | Disaster Management |
-| Category | Software |
-| Team Name | The Rolling Stones |
-| Team ID | 86220 |
