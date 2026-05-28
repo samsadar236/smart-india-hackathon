@@ -89,7 +89,7 @@ Pixel-wise classification of slope hazards from drone imagery.
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |---|---|
