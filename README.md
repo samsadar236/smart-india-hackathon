@@ -1,160 +1,194 @@
-# AI-Based Rockfall Prediction and Alert System for Open-Pit Mines
+# AI-Based Rockfall Prediction & Alert System
 
-> Smart India Hackathon 2025 | Problem Statement #25071 | Theme: Disaster Management
-> Team: The Rolling Stones (Team ID: 86220)
-> 
-> 
+![Smart India Hackathon 2025](https://img.shields.io/badge/Smart%20India%20Hackathon-2025-blue?style=for-the-badge)
+![Theme](https://img.shields.io/badge/Theme-Disaster%20Management-red?style=for-the-badge)
+![Category](https://img.shields.io/badge/Category-Software-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Prototype-orange?style=for-the-badge)
 
----
-
-## Overview
-
-Open-pit mines face a persistent and deadly challenge: unpredictable rockfalls triggered by a combination of slope geometry, fractured rock, rainfall, seismic activity, and pore pressure. Existing solutions like manual visual checks, LiDAR scans, and manual instrument logs are often late, unreliable, fragmented, or too costly to be effective in real time.
-
-Our solution is a hybrid AI-ML platform that integrates drone imagery, IoT sensors, Digital Elevation Models (DEMs), and seismic signals to predict rockfall risk in real time. By combining physics-based block models with machine learning, the system predicts rockfall probability, frequency, and magnitude, triggering automated alerts before disasters occur.
+> **Problem Statement #25071** — AI-Based Rockfall Prediction and Alert System for Open-Pit Mines  
+> **Team:** The Rolling Stones (ID: 86220) | **SIH 2025**
 
 ---
 
-## Core Features
+## Live Dashboard
 
-* **Real-Time Risk Scoring:** Outputs a risk index (0–10) classified into Safe, Caution, High, or Critical zones. Base risks are derived from terrain features and updated continuously with live weather and sensor inputs.
+**[→ View Live Dashboard](https://rockfall-temp.vercel.app/)**
 
-
-* **UAV Segmentation:** Utilizes a DeepLabV3+ CNN to detect surface instability cues such as cracks, loose blocks, seepage zones, and vegetation stress from drone imagery.
-
-
-* **Image-to-DEM Pipeline:** Converts drone or satellite RGB images into Digital Elevation Models using a Conditional GAN (pix2pix architecture), reconstructing slope geometry including angle, roughness, and elevation.
-
-
-* **Hybrid AI Prediction:** An ensemble classifier (Random Forest, XGBoost, and a Keras-based MLP) trained on historical logs identifies complex patterns for accurate probability estimation.
-
-
-* **Interactive Dashboard:** Features GIS-based real-time risk maps with color-coded zones, evacuation radii visualized on rockfall kinematics, trend forecasts, and KPI tiles.
-
-
-* **Automated Alerts:** Threshold breaches trigger SMS, email, and app notifications. Early warnings (30+ minutes lead time) enable safe evacuation and facilitate "safety holidays" on high-risk days.
-
-
-* **Fail-Safe Controls:** Includes emergency stops, handover notifications, and admin-controlled access to keep operators in charge at all times.
-
-
+The interactive dashboard provides real-time risk maps, zone-based color coding (Safe / Caution / High / Critical), sensor overlays, trend forecasts, and emergency controls.
 
 ---
 
-## Technical Architecture & Stack
+## Problem Statement
+
+Open-pit mines face a persistent and deadly challenge: unpredictable rockfalls triggered by slope geometry, fractured rock, rainfall, seismic activity, and pore pressure. Existing solutions are either late, unreliable, fragmented, or too costly:
+
+| Current Approach | Limitation |
+|---|---|
+| Manual visual checks | Late and unreliable |
+| LiDAR scans | High cost, periodic — not real-time |
+| Manual instrument logs | Fragmented, no data integration |
+
+Single ML models also fail — rockfall is too complex for any one approach, requiring hybrid physics + data-driven methods.
+
+---
+
+## Our Solution
+
+A **hybrid AI-ML platform** that integrates drone imagery, IoT sensors, Digital Elevation Models (DEMs), and seismic signals to predict rockfall risk in real time — triggering automated alerts before disasters occur.
+
+### Core Idea
+- Combine **physics-based block models with ML** to predict rockfall probability, frequency, and magnitude
+- **Zone-wise scoring**: derive base risk from terrain features, updated continuously with live weather and sensor inputs
+- Output a **risk index (0–10)** classified as `Safe` | `Caution` | `High` | `Critical`
+
+---
+
+## System Architecture
+
+```
+IoT Sensors ──┐
+UAV Imagery ──┤                              ┌──► Dashboard (GIS Maps)
+DEM Data ─────┼──► Feature Engineering ──► ML Risk Model ──► Risk Index ──► Alerts (SMS/Email/App)
+SAC Seismic ──┤         (Normalization,       (Ensemble:               └──► Evacuation Radii
+Weather API ──┘          Vulnerability        RF + XGBoost + MLP)
+                          Scoring)
+```
 
 ### Data Sources
 
-* **DEM:** Provides terrain geometry for long-term hazard mapping.
+| Source | Role |
+|---|---|
+| **DEM** | Terrain geometry for long-term hazard mapping |
+| **UAV Imagery** | Surface instability cues (cracks, vegetation stress) |
+| **IoT Sensors** | Vibration, slope, gas, weather, piezometer data via MQTT/REST |
+| **SAC Seismic Signals** | Underlying seismic activity detection |
+| **Bhukosh / NLSM (GSI)** | Pre-classified risk zones, authoritative ground-truth layers |
 
+---
 
-* **UAV Imagery:** Captures fixed and dynamic surface instability cues.
+## Model Architecture
 
+### 1. Ensemble Risk Classifier
+- **Models:** Random Forest + XGBoost + MLP (Keras API)
+- **Input:** Statistical and temporal features with vulnerability scores; Mohr-Coulomb criterion to quantify shear strength exceedance; rainfall and thaw cycles as key predictive features
+- **Output:** Risk score (0–10) → `Safe | Caution | High | Critical`
 
-* **IoT Sensors:** Measures vibration, slope, gas, weather, and pore water pressure via piezometers. Data streams live via MQTT/REST.
+### 2. Image-to-DEM Pipeline (cGAN / pix2pix)
+Converts drone/satellite RGB images into Digital Elevation Models.
+- **Generator:** U-Net with skip connections — preserves global structure (edges, slopes, terrain alignment)
+- **Discriminator:** PatchGAN — evaluates DEM realism patch-by-patch for locally consistent outputs
+- **Training:** Generator creates realistic DEMs; discriminator spots fakes, pushing continuous improvement
 
+### 3. UAV Segmentation (DeepLabV3+)
+Pixel-wise classification of slope hazards from drone imagery.
+- **Encoder:** Multi-scale feature extraction
+- **Decoder:** Segmentation masks with skip connections
+- **Detects:** Cracks, loose blocks, seepage zones, vegetation stress
+- **Optimizations:** Lightweight backbone, removed heavy atrous convolutions, added shallow layers
+- **Evaluation Metrics:** mIoU, MPA, FPS
 
-* **SAC Seismic Signals:** Detects underlying seismic activity cues.
+---
 
-
-* **Reference Geodata:** Utilizes Bhukosh (Geological Survey of India) and National Landslide Susceptibility Mapping (NLSM) to pre-classify risk zones and provide ground-truth layers.
-
-
-
-
-
-### Tech Stack
+## ⚙️ Tech Stack
 
 | Component | Technology |
 |---|---|
-| **UAV Segmentation** | DeepLabV3+ (CNN encoder-decoder) |
-| **Image-to-DEM** | cGAN (pix2pix) — U-Net Generator + PatchGAN Discriminator |
-| **Risk Model** | Random Forest, XGBoost, MLP (Keras API) |
-| **IoT Data Ingestion** | MQTT / REST |
-| **Geospatial Visualization** | GIS overlays with color-coded zone maps |
-| **Deployment** | Lightweight, containerized backend (Cloud/Edge flexible) |
----
-
-## Model Workflow
-
-1. **Data Ingestion:** DEM, UAV Imagery, IoT/Weather Data, and SAC Seismic Signals are continuously collected.
-
-
-2. **Feature Engineering:** Inputs are normalized and transformed into statistical and temporal features with vulnerability scores. The Mohr-Coulomb criterion helps quantify when shear strength is exceeded, and rainfall/thaw cycles act as significant predictive features.
-
-
-3. **Ensemble Classifier:** The engineered predictive features are fed into the hybrid ML risk model.
-
-
-4. **Risk Index Generation:** The model outputs a score (0–10) categorized as Safe, Caution, High, or Critical.
-
-
-5. **Actionable Output:** The risk score drives live dashboard monitoring, automated alerts, and decision support protocols.
-
-
+| UAV Segmentation | DeepLabV3+ (CNN encoder-decoder) |
+| Image-to-DEM | cGAN (pix2pix) — U-Net + PatchGAN |
+| Risk Model | Random Forest, XGBoost, MLP (Keras) |
+| IoT Ingestion | MQTT / REST |
+| Geospatial Visualization | GIS overlays, color-coded zone maps |
+| Deployment | Containerized, Cloud/Edge flexible |
 
 ---
 
-## Deep Dive: Model Architectures
+## Interactive Dashboard Features
 
-### UAV Segmentation
+| Feature | Description |
+|---|---|
+| **Real-Time Monitoring** | Ingest vibration, slope, gas, weather, and personnel data |
+| **Risk Detection & Alerts** | ML-based zone scoring with automated alerts and escalation |
+| **Geospatial Visualization** | GIS maps with color-coded zones, sensor overlays, safety radii |
+| **Decision Support** | Emergency stop, handover notifications, admin-controlled access |
 
-* **Model:** DeepLabV3+ encoder-decoder for pixel-wise classification of slope hazards.
-
-
-* **Encoder:** Multi-scale feature extraction.
-
-
-* **Decoder:** Segmentation masks with skip connections.
-
-
-* **Speed Optimizations:** Removed heavy atrous convolutions, added shallow layers, and implemented a lightweight backbone.
-
-
-* **Training & Evaluation:** Uses image augmentation (flips, rotations, scaling) and cross-entropy + IoU-based loss. Evaluated via mIoU, MPA, and FPS.
-
-
-
-### Image-to-DEM Pipeline
-
-* **Method:** Conditional Generative Adversarial Network (cGAN) using pix2pix architecture.
-
-
-* **Generator (U-Net):** Utilizes an encoder-decoder with skip connections to preserve global structures like edges, slopes, and terrain alignment.
-
-
-* **Discriminator (PatchGAN):** Evaluates DEM realism patch-by-patch for locally consistent outputs.
-
-
-* **Training Process:** The generator creates realistic DEMs while the discriminator spots fakes, pushing the generator to continuously improve.
-
-
+**[→ Open Dashboard](https://rockfall-temp.vercel.app/)**
 
 ---
 
-## Design Choices: Why Not SAR or Stereo Imagery?
+## Alert System
 
-We evaluated Synthetic Aperture Radar (SAR) and Sentinel/ASTER stereo imagery but ruled them out. SAR has limited vertical resolution for mine-scale terrain modeling and a lower update frequency. Stereo imagery lacks the precision required to detect early-stage slope instability, leaving critical factors like pore pressure, rock type, and micro-movements unmonitored. We chose a hybrid UAV + AI (pix2pix) approach for superior spatial resolution and real-time update frequency.
-
----
-
-## Impact & Viability
-
-* **Proactive Safety:** Moves mines from reactive monitoring to predictive safety, reducing the risk of injury and fatalities.
-
-
-* **Economic Feasibility:** Offers lower CapEx than LiDAR by utilizing commodity IoT sensors and open-source software, reducing initial investments.
-
-
-* **Operational Scalability:** Containerized deployment allows seamless scaling across multiple mine sites without over-provisioning.
-
-
-* **Reduced Downtime:** Early detection prevents costly disruptions, equipment loss, and manual monitoring labor. Temporal smoothing and multi-sensor confirmation are used to filter noise and reduce false alerts.
-
-
+- **Threshold breaches** trigger SMS, email, and app notifications automatically
+- **30+ minute early warnings** enable safe evacuation before risk escalates
+- **Safety holidays** can be declared on high-risk days using forecasting data
+- **Temporal smoothing + multi-sensor confirmation** to filter noise and reduce false alerts
 
 ---
 
-## License
+## Feasibility
 
-This project was built for a national-level hackathon. Please contact the team before reusing or building upon this work.
+### Technical
+- Low-cost IoT sensors stream live via MQTT/REST
+- Robust ensemble classifier (RF, XGBoost, MLP) built with Keras API
+- Simple GIS overlays for intuitive decision-making
+- Containerized, lightweight backend — replicable across mine sites
+
+### Economic
+- **Lower CapEx than LiDAR** — commodity sensors + open-source software
+- Early detection prevents costly disruptions and equipment loss
+- Automated monitoring reduces manual labor costs
+
+### Operational
+- Admin-only deployment with simple authentication
+- Alerts and KPIs fit existing mine safety workflows
+- Clear geospatial views minimize operator training requirements
+
+---
+
+## Impact & Benefits
+
+| Feature | Impact | Benefit |
+|---|---|---|
+| Early Alerts + Fail-Safe Controls | Reduces injury/fatality risk | Safer workforce, stronger safety compliance |
+| Zone-Based Scoring + Dashboards | Faster detection, better coordination | Reduced downtime, less manual effort |
+| Hybrid AI (DEM + UAV + Sensors) | Accurate detection with real-time updates | Scalable across different mine types |
+| Low-Cost UAVs + IoT + Edge Deploy | Affordable real-time monitoring | Lower CapEx than LiDAR, future-proof |
+| Forecasting & Historical Scoring | Enables proactive safety shutdowns | Moves mines from reactive → predictive safety |
+
+---
+
+## Design Decisions — Why Not SAR or Stereo Imagery?
+
+We evaluated two alternatives and ruled both out:
+
+**Synthetic Aperture Radar (SAR):** Works through clouds and at night, but has limited vertical resolution for mine-scale terrain modeling and a lower update frequency — insufficient for our real-time requirements.
+
+**Stereo Imagery (Sentinel/ASTER):** Lacks the precision needed for early-stage slope instability. Critical factors like pore pressure, rock type, and micro-movements remain unmonitored, limiting detection of fine-scale surface and subsurface changes.
+
+**Our choice:** Hybrid UAV + AI (pix2pix) approach provides superior spatial resolution, real-time update frequency, and mine-scale accuracy that neither SAR nor stereo imagery can match.
+
+---
+
+## Repository Contents
+
+```
+this repo
+├── README.md              ← You are here
+├── presentation/          ← SIH 2025 slide deck (full PPT)
+│   └── rolling-stones-sih2025.pptx
+```
+
+> This repository documents the system design, architecture, and research for SIH 2025.  
+> Prototype code and notebooks are under active development.
+
+---
+
+## Hackathon Details
+
+| Field | Details |
+|---|---|
+| Event | Smart India Hackathon 2025 |
+| Problem ID | 25071 |
+| Theme | Disaster Management |
+| Category | Software |
+| Team Name | The Rolling Stones |
+| Team ID | 86220 |
